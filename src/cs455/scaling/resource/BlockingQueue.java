@@ -3,8 +3,15 @@ package cs455.scaling.resource;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class BlockingQueue<Task> {
-	private Queue<Task> queue = new LinkedList<Task>();
+/**
+ * 
+ * @author Adam Bellendir
+ *
+ * @param <E>
+ */
+public class BlockingQueue<E> {
+	
+	private Queue<E> queue = new LinkedList<E>();
 	private final int EMPTY = 0;
 	private final int MAXSIZE;
 	
@@ -12,18 +19,18 @@ public class BlockingQueue<Task> {
 		this.MAXSIZE = size;
 	}
 	
-	public synchronized void enqueue(Task task) throws InterruptedException{
+	public synchronized void enqueue(E obj) throws InterruptedException{
 		while(this.queue.size()==this.MAXSIZE) {
 			wait();
 		}
 		if(this.queue.size() == EMPTY) {
 			notifyAll();
 		}
-		this.queue.offer(task);
+		this.queue.offer(obj);
 	}
 	
-	public synchronized Task dequeue() throws InterruptedException{
-		while(this.queue.size()==EMPTY) {
+	public synchronized E dequeue() throws InterruptedException{
+		while(this.queue.size()==EMPTY) { 
 			wait();
 		}
 		if(this.queue.size() == this.MAXSIZE) {
