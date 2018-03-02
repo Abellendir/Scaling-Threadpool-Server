@@ -1,18 +1,21 @@
 package cs455.scaling.pool;
 
 import cs455.scaling.resource.BlockingQueue;
-import cs455.scaling.resource.Task;
 
 /**
  * 
- * @author Adam Bellendir Worker thread that accepts a task, executes the task
- *         and returns itself back to the thread pool
+ * @author Adam Bellendir
+ * @Date 2018-02-28
+ * @Class CS 455
+ * @Assignment 2
+ * @Discription
+ * 
  */
 public class ThreadPoolWorker implements Runnable {
 
 	private final ThreadPool pool;
-	
-	BlockingQueue<Task> queue = new BlockingQueue<Task>(1);
+
+	BlockingQueue<Runnable> queue = new BlockingQueue<Runnable>(1);
 
 	public ThreadPoolWorker(ThreadPool pool) {
 		this.pool = pool;
@@ -22,7 +25,7 @@ public class ThreadPoolWorker implements Runnable {
 	public void run() {
 		while (true) {
 			try {
-				Task task = queue.dequeue();
+				Runnable task = queue.dequeue();
 				task.run();
 				pool.add(this);
 			} catch (InterruptedException e) {
@@ -37,7 +40,7 @@ public class ThreadPoolWorker implements Runnable {
 	 * @param task
 	 * @throws InterruptedException
 	 */
-	public synchronized void executeTask(Task task) throws InterruptedException {
+	public synchronized void executeTask(Runnable task) throws InterruptedException {
 		queue.enqueue(task);
 	}
 }
