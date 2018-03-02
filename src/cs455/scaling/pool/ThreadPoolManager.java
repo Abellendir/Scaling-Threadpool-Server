@@ -26,7 +26,7 @@ public class ThreadPoolManager implements Runnable {
 		while (true) {
 			try {
 				Runnable task = queue.dequeue();
-				ThreadPoolWorker worker = (ThreadPoolWorker) pool.get();
+				ThreadPoolWorker worker = pool.get();
 				worker.executeTask(task);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block

@@ -8,8 +8,8 @@ import cs455.scaling.resource.BlockingQueue;
  * @Date 2018-02-28
  * @Class CS 455
  * @Assignment 2
- * @Discription Worker thread that accepts a task, executes the task and returns
- *              itself back to the thread pool
+ * @Discription
+ * 
  */
 public class ThreadPoolWorker implements Runnable {
 

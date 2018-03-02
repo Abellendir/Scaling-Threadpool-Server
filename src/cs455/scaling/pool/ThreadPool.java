@@ -12,17 +12,17 @@ import cs455.scaling.resource.BlockingQueue;
  */
 public class ThreadPool {
 
-	private final BlockingQueue<Runnable> pool;
+	private final BlockingQueue<ThreadPoolWorker> pool;
 
 	public ThreadPool(int numberThreads) {
 		pool = new BlockingQueue<>(numberThreads);
 	}
 
-	public void add(Runnable thread) throws InterruptedException {
+	public void add(ThreadPoolWorker thread) throws InterruptedException {
 		pool.enqueue(thread);
 	}
 
-	public Runnable get() throws InterruptedException {
+	public ThreadPoolWorker get() throws InterruptedException {
 		return pool.dequeue();
 	}
 }
