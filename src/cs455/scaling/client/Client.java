@@ -7,6 +7,12 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
+/**
+ * @author Adam Bellendir
+ * @Date 2018-02-28
+ * @Class CS 455
+ * @Assignment 2
+ */
 public class Client {
 	
 	private Selector selector;
@@ -20,6 +26,7 @@ public class Client {
 		channel.register(selector, SelectionKey.OP_CONNECT);
 		channel.connect(new InetSocketAddress(this.hostAddress, this.port));
 		while(true) {
+			//other operations
 			if(key.isConnectable()) {
 				this.connect(key);
 			}
@@ -31,6 +38,7 @@ public class Client {
 		channel.finishConnect();
 		key.interestOps(SelectionKey.OP_WRITE);
 	}
+	
 	public static void main(String[] args) {
 		String serverHost = args[0];
 		int ServerPort = Integer.parseInt(args[1]);
