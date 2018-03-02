@@ -9,34 +9,36 @@ import java.util.Queue;
  * @Date 2018-02-28
  * @Class CS 455
  * @Assignment 2
- * @Discription
+ * @Discription Implementation of a blocking queue to hold both workerthreads
+ *              and tasks
+ * 
  * @param <E>
  */
 public class BlockingQueue<E> {
-	
+
 	private Queue<E> queue = new LinkedList<E>();
 	private final int EMPTY = 0;
 	private final int MAXSIZE;
-	
+
 	public BlockingQueue(int size) {
 		this.MAXSIZE = size;
 	}
-	
-	public synchronized void enqueue(E obj) throws InterruptedException{
-		while(this.queue.size()==this.MAXSIZE) {
+
+	public synchronized void enqueue(E obj) throws InterruptedException {
+		while (this.queue.size() == this.MAXSIZE) {
 			wait();
 		}
-		if(this.queue.size() == EMPTY) {
+		if (this.queue.size() == EMPTY) {
 			notifyAll();
 		}
 		this.queue.offer(obj);
 	}
-	
-	public synchronized E dequeue() throws InterruptedException{
-		while(this.queue.size()==EMPTY) { 
+
+	public synchronized E dequeue() throws InterruptedException {
+		while (this.queue.size() == EMPTY) {
 			wait();
 		}
-		if(this.queue.size() == this.MAXSIZE) {
+		if (this.queue.size() == this.MAXSIZE) {
 			notifyAll();
 		}
 		return this.queue.poll();

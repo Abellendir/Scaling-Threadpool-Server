@@ -1,7 +1,6 @@
 package cs455.scaling.pool;
 
 import cs455.scaling.resource.BlockingQueue;
-import cs455.scaling.resource.Task;
 
 /**
  * 
@@ -15,9 +14,9 @@ import cs455.scaling.resource.Task;
 public class ThreadPoolManager implements Runnable {
 
 	private final ThreadPool pool;
-	private final BlockingQueue<Task> queue;
+	private final BlockingQueue<Runnable> queue;
 
-	public ThreadPoolManager(BlockingQueue<Task> queue, ThreadPool pool) {
+	public ThreadPoolManager(BlockingQueue<Runnable> queue, ThreadPool pool) {
 		this.queue = queue;
 		this.pool = pool;
 	}
@@ -26,7 +25,7 @@ public class ThreadPoolManager implements Runnable {
 	public void run() {
 		while (true) {
 			try {
-				Task task = queue.dequeue();
+				Runnable task = queue.dequeue();
 				ThreadPoolWorker worker = (ThreadPoolWorker) pool.get();
 				worker.executeTask(task);
 			} catch (InterruptedException e) {
