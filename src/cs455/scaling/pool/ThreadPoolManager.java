@@ -6,21 +6,25 @@ import cs455.scaling.resource.Task;
 /**
  * 
  * @author Adam Bellendir
- * Manages the ThreadPool and distributes task to threads in the thread pool
+ * @Date 2018-02-28
+ * @Class CS 455
+ * @Assignment 2
+ * @Description Manages the ThreadPool and distributes task to threads in the
+ *              thread pool
  */
 public class ThreadPoolManager implements Runnable {
-	
+
 	private final ThreadPool pool;
 	private final BlockingQueue<Task> queue;
-	
+
 	public ThreadPoolManager(BlockingQueue<Task> queue, ThreadPool pool) {
 		this.queue = queue;
-		this.pool  = pool;
+		this.pool = pool;
 	}
-	
+
 	@Override
-	public void run(){
-		while(true) {
+	public void run() {
+		while (true) {
 			try {
 				Task task = queue.dequeue();
 				ThreadPoolWorker worker = (ThreadPoolWorker) pool.get();
@@ -31,5 +35,5 @@ public class ThreadPoolManager implements Runnable {
 			}
 		}
 	}
-	
+
 }

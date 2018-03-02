@@ -5,13 +5,17 @@ import cs455.scaling.resource.Task;
 
 /**
  * 
- * @author Adam Bellendir Worker thread that accepts a task, executes the task
- *         and returns itself back to the thread pool
+ * @author Adam Bellendir
+ * @Date 2018-02-28
+ * @Class CS 455
+ * @Assignment 2
+ * @Discription Worker thread that accepts a task, executes the task and returns
+ *              itself back to the thread pool
  */
 public class ThreadPoolWorker implements Runnable {
 
 	private final ThreadPool pool;
-	
+
 	BlockingQueue<Task> queue = new BlockingQueue<Task>(1);
 
 	public ThreadPoolWorker(ThreadPool pool) {

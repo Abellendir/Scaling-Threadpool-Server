@@ -4,11 +4,21 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class MessageHashCode{
+/**
+ * 
+ * @author Adam Bellendir
+ * @Date 2018-02-28
+ * @Class CS 455
+ * @Assignment 2
+ * @Description Static method to calculate hash code for sent message and
+ *              received message
+ *
+ */
+public class MessageHashCode {
 	public static String SHA1FromBytes(byte[] data) throws NoSuchAlgorithmException {
 		MessageDigest digest = MessageDigest.getInstance("SHA1");
 		byte[] hash = digest.digest(data);
-		BigInteger hashInt = new BigInteger(1,hash);
+		BigInteger hashInt = new BigInteger(1, hash);
 		return hashInt.toString(16);
 	}
 }

@@ -6,7 +6,10 @@ import java.util.Queue;
 /**
  * 
  * @author Adam Bellendir
- *
+ * @Date 2018-02-28
+ * @Class CS 455
+ * @Assignment 2
+ * @Discription
  * @param <E>
  */
 public class BlockingQueue<E> {
