@@ -1,100 +1,21 @@
 package cs455.scaling.server;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.Iterator;
+
+import cs455.scaling.pool.ThreadPool;
+import cs455.scaling.pool.ThreadPoolManager;
+import cs455.scaling.pool.ThreadPoolWorker;
+import cs455.scaling.resource.BlockingQueue;
+
 /**
  * 
  * @author Adam Bellendir
- *
+ * @Date 2018-02-28
+ * @Class CS 455
+ * @Assignment 2
  */
 public class Server {
-	
-	private Selector selector;
-	private int buffSize;
-	private int portNumber;
-	
-	public Server(int portNumber, int buffSize) {
-		this.portNumber = portNumber;
-		this.buffSize = buffSize;
-	}
-	
-	/**
-	 * 
-	 * @throws IOException
-	 */
-	private void startServer() throws IOException{
-		ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-		serverSocketChannel.configureBlocking(false);
-		serverSocketChannel.socket().bind(new InetAddress(/**/));
-		serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-		while(true) {
-			this.selector.select();
-			Iterator keys = this.selector.selectedKeys().iterator();
-			while(keys.hasNext()) {
-				if(keys.isAcceptable()) {
-					this.accept(keys);
-				}
-				/*
-				 * other classes
-				 */
-			}
-		}
-		
-	}
-	
-	/**
-	 * 
-	 * @param key
-	 * @throws IOException
-	 */
-	private void accept(SelectionKey key) throws IOException{
-		ServerSocketChannel servSocket = (ServerSocketChannel) key.channel();
-		SocketChannel channel = servSocket.accept();
-		System.out.println("Accepting incoming connection...");
-		channel.configureBlocking(false);
-		channel.register(selector, SelectionKey.OP_READ);
-	}
-	
-	/**
-	 * 
-	 * @param key
-	 * @throws IOException
-	 */
-	private void read(SelectionKey key) throws IOException {
-		SocketChannel channel = (SocketChannel)key.channel();
-		ByteBuffer buffer = ByteBuffer.allocate(buffSize);
-		int read = 0;
-		try {
-			while(buffer.hasRemaining() && read != -1) {
-				read = channel.read(buffer);
-			}
-		}catch(IOException e) {
-			//Cancel the key and close the socket channel
-		}
-		if(read == -1) {
-			//Cancel the key and close the socket channel
-			return;
-		}
-		key.interestOps(SelectionKey.OP_WRITE);
-	}
-	
-	/**
-	 * 
-	 * @param key
-	 * @throws IOException
-	 */
-	private void write(SelectionKey key)throws IOException{
-		SocketChannel channel = (SocketChannel) key.channel();
-		ByteBuffer buffer = ByteBuffer.wrap(data);
-		channel.write(buffer);
-		key.interestOps(SelectionKey.OP_READ);
-	}
 	
 	/**
 	 * 
@@ -103,7 +24,27 @@ public class Server {
 	public static void main(String[] args) {
 		int portNumber = Integer.parseInt(args[0]);
 		int threadPoolSize = Integer.parseInt(args[1]);
-
+		ThreadPool pool = new ThreadPool(threadPoolSize);
+		BlockingQueue<Runnable> queue = new BlockingQueue<>(1000);
+		ThreadPoolWorker worker = null;
+		for(int i = 0; i < threadPoolSize; i++) {
+			worker = new ThreadPoolWorker(pool);
+			new Thread(worker, ("Thread-" + i)).start();
+			try {
+				pool.add(worker);
+			} catch (InterruptedException e) {
+				System.err.print("Interrupted Exception when adding worker to ThreadPool");
+				e.printStackTrace();
+			}
+		}
+		ThreadPoolManager manager = new ThreadPoolManager(queue,pool);
+		new Thread(manager).start();
+		ServerThread server;
+		try {
+			server = new ServerThread(portNumber,8000,queue);
+			new Thread(server, "Thread-Server").start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
-
 }
