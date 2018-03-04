@@ -13,6 +13,7 @@ import cs455.scaling.resource.BlockingQueue;
  */
 public class ThreadPoolWorker implements Runnable {
 
+	private volatile boolean kill = false;
 	private final ThreadPool pool;
 
 	BlockingQueue<Runnable> queue = new BlockingQueue<Runnable>(1);
@@ -23,7 +24,7 @@ public class ThreadPoolWorker implements Runnable {
 
 	@Override
 	public void run() {
-		while (true) {
+		while (!kill) {
 			try {
 				Runnable task = queue.dequeue();
 				task.run();
@@ -42,5 +43,9 @@ public class ThreadPoolWorker implements Runnable {
 	 */
 	public synchronized void executeTask(Runnable task) throws InterruptedException {
 		queue.enqueue(task);
+	}
+	
+	public void kill() {
+		this.kill = !kill;
 	}
 }

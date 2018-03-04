@@ -12,7 +12,8 @@ import cs455.scaling.resource.BlockingQueue;
  *              thread pool
  */
 public class ThreadPoolManager implements Runnable {
-
+	
+	private volatile boolean kill = false;
 	private final ThreadPool pool;
 	private final BlockingQueue<Runnable> queue;
 
@@ -23,16 +24,19 @@ public class ThreadPoolManager implements Runnable {
 
 	@Override
 	public void run() {
-		while (true) {
+		while (!kill) {
 			try {
 				Runnable task = queue.dequeue();
 				ThreadPoolWorker worker = pool.get();
 				worker.executeTask(task);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public void kill() {
+		this.kill = !kill;
 	}
 
 }
