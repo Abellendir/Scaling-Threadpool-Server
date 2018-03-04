@@ -15,10 +15,9 @@ import java.security.NoSuchAlgorithmException;
  *
  */
 public class MessageHashCode {
-	public static String SHA1FromBytes(byte[] data) throws NoSuchAlgorithmException {
+	public static byte[] SHA1FromBytes(byte[] data) throws NoSuchAlgorithmException {
 		MessageDigest digest = MessageDigest.getInstance("SHA1");
 		byte[] hash = digest.digest(data);
-		BigInteger hashInt = new BigInteger(1, hash);
-		return hashInt.toString(16);
+		return hash;
 	}
 }
