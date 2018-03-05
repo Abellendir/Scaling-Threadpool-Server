@@ -98,6 +98,7 @@ public class Client implements Runnable {
 		}
 		Client client = new Client(serverHost, serverPort, messageRate,debug);
 		new Thread(client, "Thread-Client").start();
+		new Thread(StatisticsPrinterClient.getInstance(),"Thread-Output").start();
 
 	}
 
