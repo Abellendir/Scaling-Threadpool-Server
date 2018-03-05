@@ -23,7 +23,7 @@ public class StatisticsPrinterClient implements Runnable {
 		while (!killed()) {
 			try {
 				Thread.sleep(20000);
-				System.out.printf("[%s] Total Sent Count: %d, Total Received Count: %d",
+				System.out.printf("[%s] Total Sent Count: %d, Total Received Count: %d\n",
 						sdf.format(new Timestamp(System.currentTimeMillis())), sent, received);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
