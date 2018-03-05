@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Random;
 
 import cs455.scaling.operations.MessageHashCode;
+import cs455.scaling.util.StatisticsPrinterClient;
 
 public class Writer implements Runnable{
 	
@@ -18,6 +19,7 @@ public class Writer implements Runnable{
 	private final SocketChannel channel;
 	private final int r;
 	private boolean debug;
+	private StatisticsPrinterClient stats = StatisticsPrinterClient.getInstance();
 	
 	public Writer(SelectionKey key,int r, List<String> list, boolean debug) {
 		System.out.print("Writer Initializing...");
@@ -41,6 +43,7 @@ public class Writer implements Runnable{
 				ByteBuffer buffer = ByteBuffer.wrap(data);
 				this.channel.write(buffer);
 				buffer.clear();
+				stats.incrementSent();
 				Thread.sleep(1000 / this.r);
 			} catch (NoSuchAlgorithmException e1) {
 				e1.printStackTrace();

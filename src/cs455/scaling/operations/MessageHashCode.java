@@ -1,6 +1,5 @@
 package cs455.scaling.operations;
 
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -11,13 +10,12 @@ import java.security.NoSuchAlgorithmException;
  * @Class CS 455
  * @Assignment 2
  * @Description Static method to calculate hash code for sent message and
- *              received message
+ *              received message returns a byte[] of length 20;
  *
  */
 public class MessageHashCode {
 	public static byte[] SHA1FromBytes(byte[] data) throws NoSuchAlgorithmException {
 		MessageDigest digest = MessageDigest.getInstance("SHA1");
-		byte[] hash = digest.digest(data);
-		return hash;
+		return digest.digest(data);
 	}
 }

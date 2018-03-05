@@ -14,7 +14,7 @@ public class StatisticsPrinterClient implements Runnable {
 	private StatisticsPrinterClient() {
 	}
 	
-	public StatisticsPrinterClient getInstance() {
+	public static StatisticsPrinterClient getInstance() {
 		return stats;
 	}
 	
@@ -30,7 +30,15 @@ public class StatisticsPrinterClient implements Runnable {
 			}
 		}
 	}
-
+	
+	public synchronized void incrementSent() {
+		sent++;
+	}
+	
+	public synchronized void incrementReceived() {
+		received++;
+	}
+	
 	private synchronized boolean killed() {
 		return kill;
 	}
