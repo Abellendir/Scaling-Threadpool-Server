@@ -2,10 +2,12 @@ package cs455.scaling.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,7 +17,9 @@ import cs455.scaling.pool.ThreadPoolManager;
 import cs455.scaling.pool.ThreadPoolWorker;
 import cs455.scaling.resource.BlockingQueue;
 import cs455.scaling.resource.ChangeOps;
+import cs455.scaling.resource.IndividualClientThroughPut;
 import cs455.scaling.tasks.Task;
+import cs455.scaling.util.StatisticsPrinterServer;
 
 /**
  * 
@@ -31,8 +35,10 @@ public class Server implements Runnable {
 	private final int portNumber;
 	private final BlockingQueue<Runnable> queue;
 	private final List<ChangeOps> changeOps = new LinkedList<>();
+	private HashMap<SocketChannel, IndividualClientThroughPut> clients = new HashMap<>();
 
 	public Server(int portNumber, BlockingQueue<Runnable> queue, boolean debug) throws IOException {
+		StatisticsPrinterServer.getInstance().giveHashMap(clients);
 		System.out.print("Initializing Server...");
 		this.portNumber = portNumber;
 		this.queue = queue;
@@ -51,10 +57,11 @@ public class Server implements Runnable {
 		serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 		System.out.print("Started\n");
 		while (true) {
+			
 			synchronized(this.changeOps) {
-				if(debug) System.out.println("Checking ChangeOps for key interest updates");
-				Iterator changes = this.changeOps.iterator();
-				if(debug) System.out.println("Number ready: " + changeOps.size());
+				//if(debug) System.out.println("Checking ChangeOps for key interest updates");
+				Iterator<ChangeOps> changes = this.changeOps.iterator();
+				//if(debug) System.out.println("Number ready: " + changeOps.size());
 				while(changes.hasNext()) {
 					ChangeOps request = (ChangeOps) changes.next();
 					changes.remove();
@@ -62,10 +69,10 @@ public class Server implements Runnable {
 					key.interestOps(SelectionKey.OP_READ);
 				}
 			}
-			if(debug) System.out.println("this.selector.select()");
+			//if(debug) System.out.println("this.selector.select()");
 			int readyKeys = this.selector.select();
 			if(debug) System.out.println("Keys ready for event: " + readyKeys);
-			Iterator keys = this.selector.selectedKeys().iterator();
+			Iterator<SelectionKey> keys = this.selector.selectedKeys().iterator();
 			while(keys.hasNext()) {
 				SelectionKey key = (SelectionKey) keys.next();
 				if(key.isAcceptable()) {
@@ -73,7 +80,8 @@ public class Server implements Runnable {
 				}
 				else if(key.isReadable()){
 					key.interestOps(0);
-					queue.enqueue(new Task(key, changeOps, selector, debug));
+					queue.enqueue(new Task(key, changeOps, selector, clients, debug));
+					//queue.enqueue(new TestTask(key,this));
 				}
 				keys.remove();
 			}
@@ -92,6 +100,53 @@ public class Server implements Runnable {
 		System.out.println("Accepting incoming connection...");
 		channel.configureBlocking(false);
 		channel.register(selector, SelectionKey.OP_READ);
+		synchronized(clients) {
+			clients.put(channel, new IndividualClientThroughPut());
+		}
+	}
+	
+	/**
+	 * Testing keeping the read method in the server instead of the server
+	 * @param key
+	 * @return
+	 * @throws IOException
+	 */
+	public byte[] read(SelectionKey key) throws IOException {
+		SocketChannel channel = (SocketChannel) key.channel();
+		ByteBuffer buffer = ByteBuffer.allocate(8000);
+		int read = 0;
+		try {
+			while (buffer.hasRemaining() && read != -1) {
+				read = channel.read(buffer);
+			}
+		} catch (IOException e) {
+			key.cancel();
+			channel.close();
+		}
+		buffer.flip();
+		if (read == -1) {
+			/* Connection was terminated by the client. */
+			key.cancel();
+			channel.close();
+		}
+		byte[] received = new byte[8000];
+		buffer.get(received);
+		return received;
+		// this.key.interestOps(SelectionKey.OP_WRITE);
+	}
+	
+	/**
+	 * Testing keeping the write operation method in the server and have the task call it
+	 * @param data
+	 * @param key
+	 * @throws IOException
+	 */
+	public void write(byte[] data, SelectionKey key) throws IOException {
+		SocketChannel channel = (SocketChannel) key.channel();
+		ByteBuffer buffer = ByteBuffer.wrap(data);
+		channel.write(buffer);
+		key.interestOps(SelectionKey.OP_READ);
+		this.selector.wakeup();
 	}
 
 	@Override
@@ -142,5 +197,6 @@ public class Server implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		new Thread(StatisticsPrinterServer.getInstance()).start();
 	}
 }

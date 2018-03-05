@@ -7,10 +7,13 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.List;
 
 import cs455.scaling.operations.MessageHashCode;
 import cs455.scaling.resource.ChangeOps;
+import cs455.scaling.resource.IndividualClientThroughPut;
+import cs455.scaling.util.StatisticsPrinterServer;
 
 /**
  * @author Adam Bellendir
@@ -26,12 +29,15 @@ public class Task implements Runnable {
 	private boolean debug;
 	private List<ChangeOps> list;
 	private Selector selector;
-
-	public Task(SelectionKey key, List<ChangeOps> changeOps, Selector selector, boolean debug) {
+	private HashMap<SocketChannel,IndividualClientThroughPut> clients;
+	private StatisticsPrinterServer stats = StatisticsPrinterServer.getInstance();
+	
+	public Task(SelectionKey key, List<ChangeOps> changeOps, Selector selector, HashMap<SocketChannel, IndividualClientThroughPut> clients, boolean debug) {
 		this.key = key;
 		this.list = changeOps;
 		this.debug = debug;
 		this.selector = selector;
+		this.clients = clients;
 	}
 
 	@Override
@@ -43,6 +49,10 @@ public class Task implements Runnable {
 			byte[] data = MessageHashCode.SHA1FromBytes(received);
 			if(debug) System.out.println(Thread.currentThread().getName() + ": Hashed Message To: " + new BigInteger(1,data).toString(16));
 			write(data,key);
+			synchronized(clients) {
+				clients.get((SocketChannel) key.channel()).incrementValue();
+				stats.incrementProcessed();
+			}
 			if(debug) System.out.println("Server sent hashcode");
 		} catch (IOException e) {
 			e.printStackTrace();
