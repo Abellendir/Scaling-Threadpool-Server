@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import cs455.scaling.util.StatisticsPrinterClient;
+
 /**
  * @author Adam Bellendir
  * @Date 2018-02-28
@@ -25,6 +27,7 @@ public class Client implements Runnable {
 	private final int r;
 	private final List<String> list = new LinkedList<>();
 	private boolean debug;
+	private StatisticsPrinterClient stats = StatisticsPrinterClient.getInstance();
 
 	public Client(String hostName, int port, int r, boolean debug) throws IOException {
 		System.out.print("Initializing Client...");
@@ -61,6 +64,7 @@ public class Client implements Runnable {
 				byte[] bytes = new byte[20];
 				buffer.get(bytes);
 				boolean contains = list.contains(new BigInteger(1,bytes).toString(16));
+				stats.incrementReceived();
 				if(debug) System.out.println("Hash received from server " + new BigInteger(1, bytes).toString(16) + " matches = " + contains);
 			}
 		}
