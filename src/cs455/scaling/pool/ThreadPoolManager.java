@@ -1,6 +1,7 @@
 package cs455.scaling.pool;
 
 import cs455.scaling.resource.BlockingQueue;
+import cs455.scaling.tasks.Shutdown;
 
 /**
  * 
@@ -12,7 +13,7 @@ import cs455.scaling.resource.BlockingQueue;
  *              thread pool
  */
 public class ThreadPoolManager implements Runnable {
-	
+
 	private volatile boolean kill = false;
 	private final ThreadPool pool;
 	private final BlockingQueue<Runnable> queue;
@@ -24,19 +25,41 @@ public class ThreadPoolManager implements Runnable {
 
 	@Override
 	public void run() {
-		while (!kill) {
+		while (!shutdown()) {
 			try {
 				Runnable task = queue.dequeue();
-				ThreadPoolWorker worker = pool.get();
-				worker.executeTask(task);
+				if (task instanceof Shutdown) {
+					Thread.sleep(2000);
+					for(int i = 0; i < 10; i++) {
+						queue.clear();
+						ThreadPoolWorker worker = pool.get();
+						worker.close();
+						worker.executeTask(new Runnable() {
+							@Override
+							public void run() {
+							}
+						});
+					}
+					task.run();
+					kill();
+				} else {
+					ThreadPoolWorker worker = pool.get();
+					worker.executeTask(task);
+				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
+		System.out.println(Thread.currentThread().getName() + " has closed");
 	}
-	
-	public void kill() {
+
+	private void kill() {
+		System.out.println("Threadpool manager closing");
 		this.kill = !kill;
+	}
+
+	public boolean shutdown() {
+		return kill;
 	}
 
 }

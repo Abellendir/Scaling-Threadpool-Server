@@ -43,4 +43,8 @@ public class BlockingQueue<E> {
 		}
 		return this.queue.poll();
 	}
+	
+	public synchronized void clear() {
+		queue.clear();
+	}
 }

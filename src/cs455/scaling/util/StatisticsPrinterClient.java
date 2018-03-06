@@ -29,6 +29,7 @@ public class StatisticsPrinterClient implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		System.out.println(Thread.currentThread().getName() + " has closed");
 	}
 	
 	public synchronized void incrementSent() {
@@ -44,6 +45,7 @@ public class StatisticsPrinterClient implements Runnable {
 	}
 
 	public synchronized void kill() {
+		System.out.println("Closing Statistics Printer");
 		this.kill = !kill;
 	}
 }

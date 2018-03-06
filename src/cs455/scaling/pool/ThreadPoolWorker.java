@@ -24,7 +24,7 @@ public class ThreadPoolWorker implements Runnable {
 
 	@Override
 	public void run() {
-		while (!kill) {
+		while (!closed()) {
 			try {
 				Runnable task = queue.dequeue();
 				task.run();
@@ -33,7 +33,7 @@ public class ThreadPoolWorker implements Runnable {
 				e.printStackTrace();
 			}
 		}
-
+		System.out.println(Thread.currentThread().getName() + " has closed");
 	}
 
 	/**
@@ -45,7 +45,11 @@ public class ThreadPoolWorker implements Runnable {
 		queue.enqueue(task);
 	}
 	
-	public void kill() {
+	public synchronized void close() {
 		this.kill = !kill;
+	}
+	
+	public boolean closed() {
+		return kill;
 	}
 }

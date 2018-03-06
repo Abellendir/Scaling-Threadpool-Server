@@ -13,16 +13,17 @@ import cs455.scaling.resource.IndividualClientThroughPut;
  * @Date 2018-02-28
  * @Class CS 455
  * @Assignment 2
+ * @Discription 
  */
 public class StatisticsPrinterServer implements Runnable {
 
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
 	private static final StatisticsPrinterServer stats = new StatisticsPrinterServer();
-	private static HashMap<SocketChannel, IndividualClientThroughPut> clients;
+	private HashMap<SocketChannel, IndividualClientThroughPut> clients;
 	private boolean kill = false;
 	private int totalMessages;
 	private double[] values;
-	private int mean;
+	private double mean;
 
 	private StatisticsPrinterServer() {
 	}
@@ -44,7 +45,7 @@ public class StatisticsPrinterServer implements Runnable {
 				synchronized (clients) {
 					System.out.printf(
 							"[%s] Server Throughput: %f messages/s, " + "Active Client Connections: %d , "
-									+ "Mean Per-client Throughput: %f messages/s, "
+									+ "Mean Per-\nclient Throughput: %f messages/s, "
 									+ "Std. Dev. Of Per-client Throughput: %f messages/s\n",
 							sdf.format(new Timestamp(System.currentTimeMillis())), totalMessages / 20.0, clients.size(),
 							getMean(), currentStdDev());
@@ -54,6 +55,7 @@ public class StatisticsPrinterServer implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		System.out.println(Thread.currentThread().getName() + " has closed");
 	}
 
 	private double currentStdDev() {
@@ -77,8 +79,8 @@ public class StatisticsPrinterServer implements Runnable {
 		if (clients.size() == 0) {
 			return 0;
 		}
-		this.mean = total/clients.size()/20;
-		return total / clients.size()/20.0;
+		this.mean = total/clients.size()/20.0;
+		return this.mean;
 	}
 
 	public synchronized void incrementProcessed() {
@@ -90,6 +92,7 @@ public class StatisticsPrinterServer implements Runnable {
 	}
 
 	public synchronized void kill() {
+		System.out.println("Closing Statistics Printer");
 		this.kill = !kill;
 	}
 

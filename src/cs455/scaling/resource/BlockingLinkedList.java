@@ -21,7 +21,11 @@ public class BlockingLinkedList<E> {
 			list.remove(obj);
 			return true;
 		}
-		return list.contains(obj);
+		return false;
+	}
+	
+	public synchronized void remove(E obj) {
+		list.remove(obj);
 	}
 	
 	public synchronized boolean contains(byte[] b) {
