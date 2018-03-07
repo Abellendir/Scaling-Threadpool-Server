@@ -29,11 +29,16 @@ import cs455.scaling.util.StatisticsPrinterServer;
  * @Date 2018-02-28
  * @Class CS 455
  * @Assignment 2
- * @Description
+ * @Description Server class that monitors for incoming connections and read
+ *              operations. Passes read operations to the job queue to be
+ *              handled by the ThreadPoolManager
  * 
  */
 public class Server implements Runnable {
 
+	/**
+	 * 
+	 */
 	private boolean debug;
 	private Selector selector;
 	private final int portNumber;
@@ -41,7 +46,21 @@ public class Server implements Runnable {
 	private final List<ChangeOps> changeOps = new LinkedList<>();
 	private HashMap<SocketChannel, IndividualClientThroughPut> clients;
 	private boolean closed = false;
-
+	/**
+	 * @Discription Server Constructor
+	 * @param portNumber
+	 *            this server is to be listing on
+	 * @param queue
+	 *            for the jobs that the server needs to have process for the
+	 *            socketChannel
+	 * @param clients
+	 *            HashMap to store channels and a stat collector to be used by
+	 *            StatisticsPrinterServer
+	 * @param debug
+	 *            For print statements to verify messages are being sent and hash
+	 *            correctly
+	 * @throws IOException
+	 */
 	public Server(int portNumber, BlockingQueue<Runnable> queue,
 			HashMap<SocketChannel, IndividualClientThroughPut> clients, boolean debug) throws IOException {
 		System.out.print("Initializing Server...");
@@ -53,7 +72,9 @@ public class Server implements Runnable {
 	}
 
 	/**
-	 * 
+	 * @Discription Primary Loop for the server where it listens for incoming
+	 *              communication from clients and hands them to the queue to be
+	 *              processed
 	 * @throws IOException
 	 */
 	private void startServer() throws IOException, InterruptedException {
@@ -63,7 +84,6 @@ public class Server implements Runnable {
 		serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 		System.out.print("Started\n");
 		while (!shutdown()) {
-
 			synchronized (this.changeOps) {
 				Iterator<ChangeOps> changes = this.changeOps.iterator();
 				while (changes.hasNext()) {
@@ -73,8 +93,6 @@ public class Server implements Runnable {
 					key.interestOps(SelectionKey.OP_READ);
 				}
 			}
-
-			// if(debug) System.out.println("this.selector.select()");
 			int readyKeys = this.selector.select();
 			if (debug)
 				System.out.println("Keys ready for event: " + readyKeys);
@@ -103,10 +121,20 @@ public class Server implements Runnable {
 
 	}
 
+	/**
+	 * @Discription CHeck if the server is suppose to shutdown: ! not properly
+	 *              implemented yet
+	 * 
+	 * @return
+	 */
 	private synchronized boolean shutdown() {
 		return this.closed;
 	}
 
+	/**
+	 * @Discription shutdown command to be called by an entity who has scope of the
+	 *              server
+	 */
 	public synchronized void close() {
 		System.out.println("Closing Server...");
 		this.closed = !closed;
@@ -114,7 +142,8 @@ public class Server implements Runnable {
 	}
 
 	/**
-	 * 
+	 * @Discription Accepts incoming connections from clients who are requesting a
+	 *              connection
 	 * @param key
 	 * @throws IOException
 	 */
@@ -130,11 +159,12 @@ public class Server implements Runnable {
 	}
 
 	/**
-	 * Testing keeping the read method in the server instead of the server
-	 * 
+	 * @Discription Testing keeping the read method in the server instead of the
+	 *              server
 	 * @param key
 	 * @return
 	 * @throws IOException
+	 * @deprecated
 	 */
 	public byte[] read(SelectionKey key) throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
@@ -157,13 +187,14 @@ public class Server implements Runnable {
 		byte[] received = new byte[8192];
 		buffer.get(received);
 		return received;
-		// this.key.interestOps(SelectionKey.OP_WRITE);
+		// this.key.interestOps(SelectionKey.OP_WRITE); 
 	}
 
 	/**
 	 * Testing keeping the write operation method in the server and have the task
 	 * call it
 	 * 
+	 * @deprecated
 	 * @param data
 	 * @param key
 	 * @throws IOException
@@ -176,6 +207,9 @@ public class Server implements Runnable {
 		this.selector.wakeup();
 	}
 
+	/**
+	 * @Discription Run method to initiate server thread
+	 */
 	@Override
 	public void run() {
 		System.out.print("Starting Server...");
@@ -190,18 +224,24 @@ public class Server implements Runnable {
 	}
 
 	/**
-	 * 
+	 * @Discription driver for initiating the server
 	 * @param args
 	 */
 	public static void main(String[] args) {
+
+		// Cmd line args to initialize Port number and Number of server threads
 		int portNumber = Integer.parseInt(args[0]);
 		int threadPoolSize = Integer.parseInt(args[1]);
 		boolean debug = false;
+
+		// Checks to see if the cmd line args include a debug command
 		if (args.length == 3) {
 			if (args[2].equals("true")) {
 				debug = true;
 			}
 		}
+
+		// Initializing the Threadpool and adding them to a thread pool
 		System.out.println("Initializing ThreadPool...");
 		ThreadPool pool = new ThreadPool(threadPoolSize);
 		BlockingQueue<Runnable> queue = new BlockingQueue<>(1000);
@@ -217,12 +257,23 @@ public class Server implements Runnable {
 				e.printStackTrace();
 			}
 		}
+
+		// Initializing the ThreadPoolManager and starting it's thread
 		System.out.print("Starting ThreadPoolManager...");
 		new Thread(new ThreadPoolManager(queue, pool), "Thread-Manager").start();
 		System.out.print("Started\n");
+
+		/*
+		 * Client HashMap to track number of connections, number of messages sent, for
+		 * throughput of server overall and individual mean throughput of clients
+		 */
 		HashMap<SocketChannel, IndividualClientThroughPut> clients = new HashMap<>();
+
+		// initialization of stats collector
 		StatisticsPrinterServer stats = StatisticsPrinterServer.getInstance();
 		stats.giveHashMap(clients);
+
+		// Initialization of the Server thread and stats Thread
 		Server server = null;
 		try {
 			server = new Server(portNumber, queue, clients, debug);
@@ -231,6 +282,8 @@ public class Server implements Runnable {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
+
+		// Scanner to wait for the kill cmd to be entered from cmd line
 		Scanner scan = new Scanner(System.in);
 		String cmd = "";
 		while (!cmd.equals("kill")) {

@@ -26,6 +26,9 @@ import cs455.scaling.util.StatisticsPrinterServer;
  */
 public class Task implements Runnable {
 
+	/**
+	 * Variables for the task SelectionKey key -
+	 */
 	SelectionKey key;
 	private byte[] received = new byte[8192];
 	private boolean debug;
@@ -34,6 +37,15 @@ public class Task implements Runnable {
 	private HashMap<SocketChannel, IndividualClientThroughPut> clients;
 	private StatisticsPrinterServer stats = StatisticsPrinterServer.getInstance();
 
+	/**
+	 * @Discription Constructor that initializes the task before it is ready for
+	 *              execution
+	 * @param key
+	 * @param changeOps
+	 * @param selector
+	 * @param clients
+	 * @param debug
+	 */
 	public Task(SelectionKey key, List<ChangeOps> changeOps, Selector selector,
 			HashMap<SocketChannel, IndividualClientThroughPut> clients, boolean debug) {
 		this.key = key;
@@ -43,6 +55,9 @@ public class Task implements Runnable {
 		this.clients = clients;
 	}
 
+	/**
+	 * @Discription TODO
+	 */
 	@Override
 	public void run() {
 		try {
@@ -70,6 +85,12 @@ public class Task implements Runnable {
 
 	}
 
+	/**
+	 * @Discription Reads the channel and saves the data in a field variable to be
+	 *              hashed
+	 * @param key
+	 * @throws IOException
+	 */
 	private void read(SelectionKey key) throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		ByteBuffer buffer = ByteBuffer.allocate(8192);
@@ -98,6 +119,13 @@ public class Task implements Runnable {
 		// this.key.interestOps(SelectionKey.OP_WRITE);
 	}
 
+	/**
+	 * @Discription Writes the hash of the data sent from the channel back to the
+	 *              channel to confirm receipt
+	 * @param data
+	 * @param key
+	 * @throws IOException
+	 */
 	private void write(byte[] data, SelectionKey key) throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		ByteBuffer buffer = ByteBuffer.wrap(data);

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Random;
 
 import cs455.scaling.operations.MessageHashCode;
+import cs455.scaling.resource.BlockingLinkedList;
 import cs455.scaling.util.StatisticsPrinterClient;
 
 /**
@@ -26,16 +27,28 @@ import cs455.scaling.util.StatisticsPrinterClient;
  */
 public class Client implements Runnable {
 
+	/**
+	 * 
+	 */
 	private Selector selector;
 	private final String hostAddress;
 	private final int port;
 	private final int r;
+	//private final BlockingLinkedList<String> list = new BlockingLinkedList<>();
 	private final List<String> list = new LinkedList<>();
 	private boolean debug;
 	private StatisticsPrinterClient stats = StatisticsPrinterClient.getInstance();
 	private boolean kill = false;
 	private boolean closed = false;
 
+	/**
+	 * @Discription
+	 * @param hostName
+	 * @param port
+	 * @param r
+	 * @param debug
+	 * @throws IOException
+	 */
 	public Client(String hostName, int port, int r, boolean debug) throws IOException {
 		System.out.print("Initializing Client...");
 		this.hostAddress = hostName;
@@ -46,13 +59,19 @@ public class Client implements Runnable {
 
 	}
 
+	/**
+	 * @Discription
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws NoSuchAlgorithmException
+	 */
 	private void startClient() throws IOException, InterruptedException, NoSuchAlgorithmException {
 		SocketChannel channel = SocketChannel.open();
 		channel.configureBlocking(false);
 		channel.register(selector, SelectionKey.OP_CONNECT);
 		channel.connect(new InetSocketAddress(this.hostAddress, this.port));
 		System.out.print("Client started\n");
-		while (!closed()) {
+		while (!isClosed()) {
 			this.selector.select(4000);
 			if (!selector.isOpen())
 				break;
@@ -62,15 +81,16 @@ public class Client implements Runnable {
 				System.out.println("Client connecting to server");
 				this.connect(key);
 				System.out.println("Client connected to server");
-				//new Thread(new Writer(key, this.r, this.list, this.debug, this.selector, this), "Thread-Writer").start();
-			} if (key.isWritable()) {
+			}
+			if (key.isWritable()) {
 				write(key);
-			} if (key.isReadable()) {
+			}
+			if (key.isReadable()) {
 				read(key);
-			} 
+			}
 			if (closed())
 				break;
-			Thread.sleep(1000/(this.r));
+			Thread.sleep(1000 / (this.r));
 		}
 		System.out.println("Selector Timed out, Server Disconnected");
 		System.out.println(Thread.currentThread().getName() + " has closed");
@@ -80,11 +100,12 @@ public class Client implements Runnable {
 	}
 
 	/**
+	 * @Discription
 	 * @param SelectionKey
 	 * @throws IOException
 	 */
 	private void read(SelectionKey key) throws IOException {
-		
+
 		SocketChannel channel = (SocketChannel) key.channel();
 		ByteBuffer buffer = ByteBuffer.allocate(20);
 		int read = 0;
@@ -92,15 +113,29 @@ public class Client implements Runnable {
 			read = channel.read(buffer);
 		}
 		buffer.flip();
+		if (read == -1) {
+			/* Connection was terminated by the client. */
+			key.cancel();
+			channel.close();
+			shutdown();
+			return;
+		}
 		byte[] bytes = new byte[20];
 		buffer.get(bytes);
 		boolean contains = list.contains(new BigInteger(1, bytes).toString(16));
 		stats.incrementReceived();
 		if (debug)
-			System.out.println("Hash received from server " + new BigInteger(1, bytes).toString(16)
-					+ " matches = " + contains);
+			System.out.println(
+					"Hash received from server " + new BigInteger(1, bytes).toString(16) + " matches = " + contains);
 	}
 
+	/**
+	 * @Discription
+	 * @param key
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	private void write(SelectionKey key) throws NoSuchAlgorithmException, IOException, InterruptedException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		Random random = new Random();
@@ -130,25 +165,40 @@ public class Client implements Runnable {
 		stats.incrementSent();
 
 		// Number of messages to send every second
-		//Thread.sleep(1000 / this.r);
+		// Thread.sleep(1000 / this.r);
 
 	}
 
+	/**
+	 * @Discription
+	 */
 	public synchronized void close() {
 		this.kill = true;
 	}
 
+	/**
+	 * @Discription
+	 * @return
+	 */
 	public synchronized boolean closed() {
 		// System.out.println(kill);
 		return this.kill;
 	}
 
+	/**
+	 * @Discription
+	 * @param key
+	 * @throws IOException
+	 */
 	private void connect(SelectionKey key) throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		channel.finishConnect();
 		key.interestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ);
 	}
 
+	/**
+	 * @Discription
+	 */
 	@Override
 	public void run() {
 		System.out.print("Starting client...");
@@ -163,14 +213,26 @@ public class Client implements Runnable {
 		}
 	}
 
+	/**
+	 * @Discription
+	 */
 	public void shutdown() {
 		this.closed = !closed;
 	}
 
+	/**
+	 * @Discription
+	 * @return
+	 */
 	private boolean isClosed() {
 		return closed;
 	}
 
+	/**
+	 * @Discription
+	 * @param args
+	 * @throws IOException
+	 */
 	public static void main(String[] args) throws IOException {
 		String serverHost = args[0];
 		int serverPort = Integer.parseInt(args[1]);

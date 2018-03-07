@@ -16,7 +16,11 @@ import cs455.scaling.util.StatisticsPrinterClient;
 /**
  * 
  * @author Adam Bellendir
- *
+ * @Date 2018-02-28
+ * @Class CS 455
+ * @Assignment 2
+ * @Discription
+ * @deprecated
  */
 public class Writer implements Runnable {
 
@@ -30,7 +34,7 @@ public class Writer implements Runnable {
 	private Selector selector;
 
 	/**
-	 * 
+	 * @Discription Don't use, Makes client a heavy resource hog
 	 * @param key
 	 * @param r
 	 * @param list
@@ -47,7 +51,10 @@ public class Writer implements Runnable {
 		this.selector = selector;
 		this.client = client;
 	}
-
+	
+	/**
+	 * @Discription
+	 */
 	@Override
 	public void run() {
 		System.out.print("Starting to send messages\n");
@@ -77,6 +84,7 @@ public class Writer implements Runnable {
 	}
 
 	/**
+	 * @Discription
 	 * @throws NoSuchAlgorithmException 
 	 * @throws IOException 
 	 * @throws InterruptedException 
@@ -112,13 +120,20 @@ public class Writer implements Runnable {
 			Thread.sleep(1000 / this.r);
 
 	}
-
+	
+	/**
+	 * @Discription
+	 * @return
+	 */
 	private synchronized boolean closed() {
 		return kill;
 	}
-
+	
+	/**
+	 * @Discription
+	 */
 	public synchronized void close() {
 		this.kill = !kill;
-	}
+	} 
 
 }

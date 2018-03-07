@@ -3,6 +3,11 @@ package cs455.scaling.util;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
+/**
+ * 
+ * @author Adam Bellendir
+ *
+ */
 public class StatisticsPrinterClient implements Runnable {
 
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
