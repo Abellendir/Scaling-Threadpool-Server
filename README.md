@@ -1,8 +1,9 @@
-# **Simple Scaling Server**  
+# Simple Scaling Server
    
    
 ## Discription    
 
+This is an example of a simple scalable server utilizing a configurable thread pool and Java NIO. The client is used to generate a randomly generated string and sends messages at a set interval to the server. The Server receives the strings from the client and hashes them using the hash function SHA1 and sends the result back to the client to be verified.  
 
 ## __Packages__ 
   
